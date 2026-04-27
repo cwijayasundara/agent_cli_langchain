@@ -1,0 +1,20 @@
+"""Top-level Typer app for lcagents."""
+from __future__ import annotations
+
+import typer
+
+from lcagents.commands import info as info_cmd
+
+app = typer.Typer(
+    name="lcagents",
+    help="A tool for coding agents to scaffold/run/evaluate/deploy LangChain projects.",
+    no_args_is_help=True,
+)
+
+
+@app.callback(invoke_without_command=True)
+def _main(ctx: typer.Context) -> None:
+    """lcagents — LangChain project toolkit."""
+
+
+app.command("info")(info_cmd.info)
