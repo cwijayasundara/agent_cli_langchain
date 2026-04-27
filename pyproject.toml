@@ -57,3 +57,4 @@ warn_unused_ignores = true
 testpaths = ["tests"]
 addopts = "-v"
 pythonpath = ["src"]
+markers = ["integration: end-to-end tests that hit the network or build images"]
