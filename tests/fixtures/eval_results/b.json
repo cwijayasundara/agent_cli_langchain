@@ -1,0 +1,6 @@
+{
+  "smoke": [
+    {"key": "correctness", "score": 0.9},
+    {"key": "latency", "score": 1.5}
+  ]
+}
