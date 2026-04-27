@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import typer
 
+from lcagents.commands import dev as dev_cmd
 from lcagents.commands import info as info_cmd
+from lcagents.commands import install as install_cmd
+from lcagents.commands import lint as lint_cmd
 from lcagents.commands import run as run_cmd
 from lcagents.commands import scaffold as scaffold_cmd
 from lcagents.commands import setup as setup_cmd
@@ -24,3 +27,6 @@ app.command("info")(info_cmd.info)
 app.command("setup")(setup_cmd.setup)
 app.command("run")(run_cmd.run)
 app.add_typer(scaffold_cmd.app, name="scaffold")
+app.command("install")(install_cmd.install)
+app.command("lint")(lint_cmd.lint)
+app.command("dev")(dev_cmd.dev)
