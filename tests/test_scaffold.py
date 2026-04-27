@@ -87,3 +87,17 @@ def test_scaffold_deep_agent_template(tmp_path, monkeypatch) -> None:
     for rel in DEEP_AGENT_FILES:
         assert (project / rel).is_file(), f"Missing: {rel}"
     assert "deepagents" in (project / "pyproject.toml").read_text()
+
+
+def test_scaffold_chain_template(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["scaffold", "create", "rag", "--template", "langchain-chain"])
+    assert result.exit_code == 0
+    project = tmp_path / "rag"
+    for rel in [
+        "agent/agent.py",
+        "agent/chain.py",
+        ".agents/skills/editing-the-chain.md",
+        "pyproject.toml",
+    ]:
+        assert (project / rel).is_file(), f"Missing: {rel}"

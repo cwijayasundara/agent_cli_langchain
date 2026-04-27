@@ -1,0 +1,23 @@
+---
+name: project-overview
+description: Use when starting work in this LangChain LCEL chain project.
+---
+
+# {{ project_name }} — Project Overview
+
+This is a **LangChain Expression Language (LCEL) project** — a `Runnable` pipeline, not an agentic graph.
+
+## Layout
+
+- `agent/agent.py` — exports the chain as `agent`. **Never rename.**
+- `agent/chain.py` — LCEL composition (the `build_chain()` function).
+- `agent/tools.py` — callables you compose into the chain.
+- `agent/prompts.py` — system prompt.
+
+## Commands
+
+- `lcagents run "<prompt>"`
+- `lcagents eval run`
+- `lcagents deploy {{ deploy_target }}`
+
+`lcagents dev` is a no-op for chain projects (no graph to inspect).
