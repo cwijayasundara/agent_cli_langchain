@@ -1,3 +1,0 @@
-template = "langgraph-agent"
-scaffolder_version = "0.1.0"
-deploy_target = "docker"

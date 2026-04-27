@@ -1,8 +1,0 @@
-__pycache__/
-.venv/
-.env
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-evals/results/
-.agents/baseline/
