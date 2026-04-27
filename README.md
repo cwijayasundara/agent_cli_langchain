@@ -9,7 +9,7 @@ A skill bundle that turns Claude Code, Codex, and other coding agents into exper
 ### Using `npx skills`
 
 ```bash
-npx skills add chamindawijayasundara/agent_cli_langchain
+npx skills add cwijayasundara/agent_cli_langchain
 ```
 
 This copies the eight skill files into the skill directories of every coding agent it detects (`~/.claude/skills/`, `~/.codex/skills/`, etc.).
@@ -17,7 +17,7 @@ This copies the eight skill files into the skill directories of every coding age
 ### Manual install
 
 ```bash
-git clone https://github.com/chamindawijayasundara/agent_cli_langchain
+git clone https://github.com/cwijayasundara/agent_cli_langchain
 cp agent_cli_langchain/skills/*.md ~/.claude/skills/
 cp agent_cli_langchain/skills/*.md ~/.codex/skills/
 ```
