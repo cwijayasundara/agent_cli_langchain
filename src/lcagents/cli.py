@@ -4,6 +4,7 @@ from __future__ import annotations
 import typer
 
 from lcagents.commands import info as info_cmd
+from lcagents.commands import setup as setup_cmd
 
 app = typer.Typer(
     name="lcagents",
@@ -18,3 +19,4 @@ def _main(ctx: typer.Context) -> None:
 
 
 app.command("info")(info_cmd.info)
+app.command("setup")(setup_cmd.setup)
