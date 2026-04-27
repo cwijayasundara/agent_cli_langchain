@@ -41,15 +41,25 @@ claude mcp add-json langchain-docs '{
   "command": "uvx",
   "args": [
     "--from", "mcpdoc", "mcpdoc",
-    "--urls",
-    "LangChain:https://docs.langchain.com/llms.txt",
-    "LangGraph:https://docs.langchain.com/oss/python/langgraph/llms.txt",
+    "--urls", "LangChain:https://docs.langchain.com/llms.txt",
     "--transport", "stdio"
   ]
 }'
 ```
 
-For Cursor / Windsurf / Claude Desktop, see the [`mcpdoc` README](https://github.com/langchain-ai/mcpdoc#configuration) — it lists per-IDE config files.
+The `--urls` flag is a **single string** with space-separated `Name:URL` pairs — not one arg per source. To register multiple indices, append them to that one string:
+
+```bash
+"--urls", "LangChain:https://docs.langchain.com/llms.txt LangGraph:https://langchain-ai.github.io/langgraph/llms.txt"
+```
+
+Verify it loaded:
+
+```bash
+claude mcp list                    # should show `langchain-docs - ✓ Connected`
+```
+
+For Cursor / Windsurf / Claude Desktop, see the [`mcpdoc` README](https://github.com/langchain-ai/mcpdoc#configuration) — it lists per-IDE config files. The `--urls` syntax is the same in those configs.
 
 ## What the skills cover
 
