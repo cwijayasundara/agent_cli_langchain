@@ -52,11 +52,9 @@ cp agent_cli_langchain/skills/*.md ~/.codex/skills/
 - **Not a wrapper around the LangChain ecosystem.** Skills point at the existing official tools and explain how to use them well.
 - **Not a published Python package.** Nothing on PyPI.
 
-## Design
+## History
 
-- High-level positioning: [`docs/superpowers/specs/2026-04-27-pivot-to-skills-only.md`](docs/superpowers/specs/2026-04-27-pivot-to-skills-only.md)
-- Original v1 design (a Python CLI; superseded): [`docs/superpowers/specs/2026-04-27-langchain-agents-cli-design.md`](docs/superpowers/specs/2026-04-27-langchain-agents-cli-design.md)
-- The v1 implementation lives at git tag `v1-implementation-archive`. Recoverable if needed.
+This repo went through one earlier iteration as a full Python CLI before becoming a pure skill bundle. That implementation is preserved at git tag `v1-implementation-archive` for the curious. See `git log` for the design evolution.
 
 ## License
 
