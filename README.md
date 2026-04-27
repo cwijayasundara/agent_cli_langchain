@@ -110,6 +110,10 @@ Without `mcpdoc`, the agent has only the bundle's editorial content and falls ba
 - **Not a docs replacement.** That's `mcpdoc`'s job — install it.
 - **Not a published Python package.** Nothing on PyPI.
 
+## Design
+
+A 27-slide design deck covering the technical details — middleware system, productionisation patterns, deploy recipes, the skills+`mcpdoc` runtime model, maintenance strategy — lives at [`design-deck.md`](design-deck.md). The file is markdown formatted for slide-by-slide import into Google Slides (instructions at the top of the file).
+
 ## History
 
 This repo went through one earlier iteration as a full Python CLI before becoming a pure skill bundle. That implementation is preserved at git tag `v1-implementation-archive`. See `git log` for the design evolution.
