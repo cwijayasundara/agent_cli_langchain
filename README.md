@@ -12,7 +12,7 @@ A skill bundle that turns Claude Code, Codex, and other coding agents into exper
 npx skills add cwijayasundara/agent_cli_langchain
 ```
 
-This copies the eight skill files into the skill directories of every coding agent it detects (`~/.claude/skills/`, `~/.codex/skills/`, etc.).
+This copies the nine skill files into the skill directories of every coding agent it detects (`~/.claude/skills/`, `~/.codex/skills/`, etc.).
 
 ### Manual install
 
@@ -28,12 +28,13 @@ cp agent_cli_langchain/skills/*.md ~/.codex/skills/
 |---|---|
 | `langchain-agents-workflow` | The full lifecycle and which official tool to reach for at each step. Always-on entry point. |
 | `langchain-agents-scaffold` | `langgraph new` for graph projects; minimal recipes for DeepAgents and LCEL chains. |
-| `langchain-agents-langgraph-code` | LangGraph API patterns: `StateGraph`, conditional routing, checkpointers, streaming. |
-| `langchain-agents-deepagents-code` | DeepAgents API: `create_deep_agent`, sub-agents, virtual filesystem, built-ins. |
-| `langchain-agents-langchain-code` | LCEL composition for chains and RAG. |
-| `langchain-agents-langsmith-evals` | Evalset format, evaluators, running with `langsmith.evaluate(...)`, comparing runs. |
-| `langchain-agents-deploy` | Three full deploy recipes: LangSmith Cloud, Google Cloud Run (`--source` + Secret Manager), self-hosted Docker. |
-| `langchain-agents-observability` | LangSmith tracing setup and a failure-mode lookup table. |
+| `langchain-agents-middleware` | The agentic middleware system — the v1+ composition primitive. Built-in middlewares (retries, fallbacks, summarization, HITL, PII, call limits) + custom middleware authoring. The single most important production concept. |
+| `langchain-agents-langgraph-code` | When to drop down to raw `StateGraph` (multi-graph workflows, custom routing, parallel branches), plus checkpointers and durable execution. |
+| `langchain-agents-deepagents-code` | DeepAgents API: `create_deep_agent`, sub-agents, virtual filesystem, filesystem backends, sandboxed execution, composing extra middlewares. |
+| `langchain-agents-langchain-code` | LCEL composition for chains and RAG, structured outputs, chain-level retries/fallbacks. |
+| `langchain-agents-langsmith-evals` | Evalset format, evaluators, running with `langsmith.evaluate(...)`, plus unit / integration / pytest-plugin testing strategies. |
+| `langchain-agents-deploy` | Productionisation (durable execution, the production middleware stack, Postgres checkpointers) + three full deploy recipes: LangSmith Cloud, Google Cloud Run, self-hosted Docker. |
+| `langchain-agents-observability` | LangSmith tracing, OpenTelemetry integration, distributed tracing, alerting, sampling, and a failure-mode lookup table. |
 
 ## How to use
 

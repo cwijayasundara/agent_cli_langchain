@@ -1,11 +1,11 @@
 ---
 name: langchain-agents-langsmith-evals
-description: Use when authoring eval datasets, writing evaluators, running evals against a LangChain / LangGraph / DeepAgents project, or comparing eval results between runs.
+description: Use when authoring eval datasets, writing evaluators, running evals against a LangChain / LangGraph / DeepAgents project, comparing eval results between runs, or writing unit/integration tests for an agent.
 ---
 
-# LangSmith Evals
+# Evals + Testing
 
-Use the `langsmith` Python SDK directly. There is no CLI wrapper — write a small `evals/run.py` and run it with `python evals/run.py`.
+Use the `langsmith` Python SDK directly. There is no CLI wrapper — write a small `evals/run.py` and run it with `python evals/run.py`. For per-test-function CI checks, use `pytest` with the `langsmith` pytest plugin.
 
 `LANGSMITH_API_KEY` must be set. `LANGSMITH_PROJECT` controls which project the trace lands in.
 
@@ -102,10 +102,91 @@ if __name__ == "__main__":
 
 Run with: `python evals/run.py` (full) or `python evals/run.py --smoke` (smoke only).
 
+## Suggested smoke pattern (for deploy gating)
+
+Keep `evals/datasets/smoke.jsonl` small (3–5 rows) and fast (<60 s total). Run `python evals/run.py --smoke` before any deploy. **If smoke fails, fix the agent or the smoke dataset — never bypass.** This pattern is recommended but not enforced; the deploy skill expects you to do it manually.
+
 ## Comparing two runs
 
 The `langsmith` UI is the best place to compare experiments side-by-side. For a quick CLI diff between two `evals/results/*.json` files, write a 30-line script that loads both and prints metric deltas — there's no built-in CLI for this.
 
-## Suggested smoke pattern (for deploy gating)
+---
 
-Keep `evals/datasets/smoke.jsonl` small (3–5 rows) and fast (<60 s total). Run `python evals/run.py --smoke` before any deploy. **If smoke fails, fix the agent or the smoke dataset — never bypass.** This pattern is recommended but not enforced; the `langchain-agents-deploy` skill expects you to do it manually.
+# Testing strategies
+
+The `langsmith` package ships a pytest plugin. Three layers of testing for a production agent:
+
+## 1. Unit tests (no API calls)
+
+Use `LLMToolEmulator` middleware to short-circuit tool execution, and a fake / mocked model:
+
+```python
+# tests/test_agent_unit.py
+from langchain.agents import create_agent
+from langchain.agents.middleware import LLMToolEmulator
+
+def test_agent_handles_empty_input():
+    agent = create_agent(
+        model="claude-haiku-4-5",      # fastest available; or use a stub
+        tools=[my_tool],
+        middleware=[LLMToolEmulator()],   # tools return LLM-emulated outputs
+    )
+    result = agent.invoke({"messages": [{"role": "user", "content": "hi"}]})
+    assert "messages" in result
+```
+
+For full hermetic unit tests with no LLM calls at all, mock `init_chat_model` or pass a `FakeChatModel` (`from langchain_core.language_models.fake import FakeChatModel`).
+
+## 2. Integration tests (real LLM, hermetic tools)
+
+Real model, real middleware, but tools mocked / point at sandboxes:
+
+```python
+# tests/test_agent_integration.py
+import pytest
+from agent.agent import agent
+
+@pytest.mark.integration
+def test_smoke_basic():
+    result = agent.invoke({"messages": [{"role": "user", "content": "Say hi."}]})
+    msg = result["messages"][-1]
+    assert "hi" in str(msg.content).lower()
+```
+
+Run with `pytest -m integration`. Skip in CI without API keys; run locally or in a separately-credentialed CI step.
+
+## 3. Trajectory + dataset tests via langsmith pytest plugin
+
+```python
+# tests/test_agent_trajectories.py
+import pytest
+from langsmith import testing as t
+
+@t.expect(score_min=0.8, evaluator="correctness")
+@pytest.mark.parametrize("example", [
+    {"messages": [{"role": "user", "content": "What is 2+2?"}], "reference": "4"},
+    {"messages": [{"role": "user", "content": "Capital of France?"}], "reference": "Paris"},
+])
+def test_basic_qa(example):
+    from agent.agent import agent
+    return agent.invoke({"messages": example["messages"]})
+```
+
+The plugin uploads each test result to LangSmith, runs the named evaluator(s), and fails the test if the score falls below the threshold. This is the recommended way to gate PRs on agent quality.
+
+## Eval-as-monitor (production)
+
+In production, the same evaluators that grade your dev runs can run continuously against live traces:
+
+1. Set up an evaluator function in LangSmith UI.
+2. Configure it to run on incoming traces (sampled or all).
+3. Wire an alert when score drops below threshold.
+
+This catches model drift, prompt rot, and gradual quality degradation that smoke evals don't see.
+
+## Common eval gotchas
+
+- LLM-as-judge evaluators are themselves non-deterministic. Run each example 3+ times and average, OR use a low-temperature judge model.
+- Don't mix metric directions. `correctness` higher = better; `latency` higher = worse. Make this explicit in evaluator names so dashboards read correctly.
+- Smoke datasets that are too large (>10 rows) become a deploy bottleneck. Keep them tight; rely on the full eval suite running async post-deploy for breadth.
+- `langsmith.evaluate(...)` runs invocations in parallel by default. If your agent has rate-limited tools, set `max_concurrency=1` or accept that retries will fire.
