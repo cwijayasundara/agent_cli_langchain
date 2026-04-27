@@ -1,0 +1,24 @@
+---
+name: project-overview
+description: Use when starting work in this DeepAgents project to learn the layout.
+---
+
+# {{ project_name }} — Project Overview
+
+This is a **DeepAgents project**.
+
+## Layout
+
+- `agent/agent.py` — exports `agent` from `create_deep_agent(...)`. **Never rename.**
+- `agent/subagents.py` — sub-agent specifications for the `task` tool.
+- `agent/tools.py` — tool definitions.
+- `agent/prompts.py` — top-level system prompt / instructions.
+
+DeepAgents already provides `write_todos`, virtual filesystem, and `task` delegation.
+
+## Commands
+
+- `lcagents run "<prompt>"`
+- `lcagents dev` (works because DeepAgents returns a compiled LangGraph)
+- `lcagents eval run`
+- `lcagents deploy {{ deploy_target }}`

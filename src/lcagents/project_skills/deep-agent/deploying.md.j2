@@ -1,0 +1,15 @@
+---
+name: deploying
+description: Use when deploying this project. Default target is {{ deploy_target }}.
+---
+
+# Deploying
+
+Default target: **{{ deploy_target }}**.
+
+- `lcagents deploy langsmith` — push to LangSmith Cloud via `langgraph build/deploy`.
+- `lcagents deploy docker --tag {{ project_name }}:latest` — build a self-contained image.
+
+Both run `lcagents eval run --smoke` first and refuse to deploy if it fails.
+
+**Never** print `.env` content into chat. Secrets live in `.env`; the deploy command pushes them to the right place.

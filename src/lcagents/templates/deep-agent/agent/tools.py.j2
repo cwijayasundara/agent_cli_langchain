@@ -1,0 +1,11 @@
+"""User tools available to the DeepAgent."""
+from langchain_core.tools import tool
+
+
+@tool
+def echo(text: str) -> str:
+    """Return the input unchanged."""
+    return text
+
+
+TOOLS = [echo]
