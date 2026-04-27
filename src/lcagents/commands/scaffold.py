@@ -9,6 +9,7 @@ from rich.console import Console
 
 from lcagents.config import DeployTarget, Template, find_project_root
 from lcagents.scaffold import enhance_project, scaffold_project
+from lcagents.upgrade import upgrade_project
 
 console = Console()
 app = typer.Typer(help="Scaffold, enhance, or upgrade an lcagents project.")
@@ -57,3 +58,16 @@ def enhance(
         console.print(f"[yellow]{a} already present[/yellow]")
     if target:
         console.print(f"[green]Set deploy_target = {target}[/green]")
+
+
+@app.command("upgrade", help="Re-sync skill files and template content.")
+def upgrade() -> None:
+    project = find_project_root(Path.cwd())
+    if project is None:
+        console.print("[red]No lcagents project found.[/red]")
+        raise typer.Exit(1)
+    updated, conflicts = upgrade_project(project)
+    for u in updated:
+        console.print(f"[green]Updated[/green] {u.relative_to(project)}")
+    for c in conflicts:
+        console.print(f"[yellow]Conflict[/yellow] {c.relative_to(project)}")
