@@ -9,6 +9,7 @@ from lcagents.commands import evals as evals_cmd
 from lcagents.commands import info as info_cmd
 from lcagents.commands import install as install_cmd
 from lcagents.commands import lint as lint_cmd
+from lcagents.commands import login as login_cmd
 from lcagents.commands import run as run_cmd
 from lcagents.commands import scaffold as scaffold_cmd
 from lcagents.commands import setup as setup_cmd
@@ -34,3 +35,4 @@ app.command("lint")(lint_cmd.lint)
 app.command("dev")(dev_cmd.dev)
 app.add_typer(evals_cmd.app, name="eval")
 app.add_typer(deploy_cmd.app, name="deploy")
+app.command("login")(login_cmd.login)
