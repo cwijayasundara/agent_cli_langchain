@@ -1,0 +1,43 @@
+"""Tiny FastAPI host for {{ project_name }}.
+
+POST /invoke   {"input": {"messages": [...]}}
+POST /stream   (NDJSON)
+"""
+from __future__ import annotations
+
+import json
+from collections.abc import AsyncGenerator
+
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+load_dotenv()
+
+from agent.agent import agent  # noqa: E402
+
+app = FastAPI(title="{{ project_name }}")
+
+
+class InvokeRequest(BaseModel):
+    input: dict
+
+
+@app.get("/healthz")
+def healthz() -> dict:
+    return {"ok": True}
+
+
+@app.post("/invoke")
+def invoke(req: InvokeRequest) -> dict:
+    return {"output": agent.invoke(req.input)}
+
+
+@app.post("/stream")
+async def stream(req: InvokeRequest) -> StreamingResponse:
+    async def gen() -> AsyncGenerator[bytes, None]:
+        async for chunk in agent.astream(req.input):
+            yield (json.dumps(chunk, default=str) + "\n").encode("utf-8")
+
+    return StreamingResponse(gen(), media_type="application/x-ndjson")

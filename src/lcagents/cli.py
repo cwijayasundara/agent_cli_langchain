@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import typer
 
+from lcagents.commands import deploy as deploy_cmd
 from lcagents.commands import dev as dev_cmd
 from lcagents.commands import evals as evals_cmd
 from lcagents.commands import info as info_cmd
@@ -32,3 +33,4 @@ app.command("install")(install_cmd.install)
 app.command("lint")(lint_cmd.lint)
 app.command("dev")(dev_cmd.dev)
 app.add_typer(evals_cmd.app, name="eval")
+app.add_typer(deploy_cmd.app, name="deploy")

@@ -30,6 +30,9 @@ EXPECTED_FILES = [
     "evals/run.py",
     "tests/test_agent.py",
     "langgraph.json",
+    "server/__init__.py",
+    "server/app.py",
+    "server/Dockerfile",
 ]
 
 
