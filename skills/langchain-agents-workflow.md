@@ -5,9 +5,21 @@ description: Use when starting work on any LangChain / LangGraph / DeepAgents pr
 
 # LangChain Agents Workflow
 
-This skill teaches you (the coding agent) how to build, productionise, evaluate, and deploy LangChain ecosystem projects using the official tools. It is the entry point — read this first, then load the more specific skill for the step you're on.
+This skill is the entry point — read it first, then load the more specific skill for the step you're on.
 
-There is **no `lcagents` binary** and no canonical project layout. You'll work directly with `langchain` (`create_agent`), `langgraph-cli`, the `deepagents` package, the `langsmith` Python SDK, and the user's chosen deploy tool (`gcloud`, `docker`, etc.).
+## You have two complementary tools
+
+This skill bundle pairs with the **`mcpdoc` MCP server**. The two have distinct roles; use both.
+
+| | `mcpdoc` (MCP server) | This skill bundle |
+|---|---|---|
+| Purpose | Live API reference | Opinionated playbook |
+| Content | Whatever's on `docs.langchain.com` right now | How to *think* about LangChain projects |
+| When to use | "What's the signature of `SummarizationMiddleware`?" / "What kwargs does `create_agent` take?" / "What import path for X?" | "What's the production middleware stack?" / "How do I wire Cloud Run + Secret Manager + Postgres checkpointer together?" / "Which mistakes does an agent typically make here?" |
+| How to use | Call `fetch_docs(url)` or `list_doc_sources()` | Load skills based on description triggers |
+| Drift risk | Zero — always live | Owner updates as ecosystem evolves; some rot tolerated |
+
+**Rule of thumb:** when you need an exact API detail, fetch from `mcpdoc`. When you need to make a design decision, load a skill. When in doubt, do both.
 
 ## When to load which skill
 
@@ -16,52 +28,51 @@ There is **no `lcagents` binary** and no canonical project layout. You'll work d
 | Start a new agent project | `langchain-agents-scaffold` |
 | Build a modern agent (most cases) | `langchain-agents-middleware` ← first; uses `create_agent(...)` with middleware |
 | Add nodes/edges/tools to a custom LangGraph | `langchain-agents-langgraph-code` |
-| Customize a DeepAgent (sub-agents, tools, prompt) | `langchain-agents-deepagents-code` |
-| Build a non-agentic LCEL pipeline (chains, RAG, structured output) | `langchain-agents-langchain-code` |
+| Customize a DeepAgent | `langchain-agents-deepagents-code` |
+| Build a non-agentic LCEL pipeline (chains, RAG) | `langchain-agents-langchain-code` |
 | Write or run evals; unit/integration test agents | `langchain-agents-langsmith-evals` |
-| Deploy + productionise (durable execution, checkpointer, scaling) | `langchain-agents-deploy` |
-| Debug a misbehaving agent / read traces / OTEL | `langchain-agents-observability` |
+| Deploy + productionise | `langchain-agents-deploy` |
+| Debug / read traces / OTEL | `langchain-agents-observability` |
 
 ## Mental model
 
-There are **three layers** in the modern stack:
+Three layers in the modern stack:
 
-1. **Composition primitive: `create_agent(model, tools, middleware=...)`** — the v1 default for building agents. Middleware is how you add retries, fallbacks, summarization, HITL, PII handling, call limits, etc. Read the **middleware** skill for the production stack.
-2. **Underlying graph: LangGraph.** `create_agent` returns a compiled LangGraph; you can drop down to raw `StateGraph` when you need fine-grained control (custom routing, multi-graph workflows). Read the **langgraph-code** skill for that.
-3. **Pre-composed agent: DeepAgents.** `create_deep_agent(...)` is `create_agent(...)` pre-loaded with `FilesystemMiddleware` + `SubAgentMiddleware` + `TodoListMiddleware`. Read the **deepagents-code** skill.
+1. **`create_agent(model, tools, middleware=...)`** — the v1 default for building agents. Middleware is how you add retries, fallbacks, summarization, HITL, PII handling, call limits. Read the **middleware** skill for the production stack.
+2. **Raw LangGraph (`StateGraph`)** — drop down when `create_agent` isn't enough (multi-graph workflows, custom state, parallel branches). Read **langgraph-code**.
+3. **DeepAgents** — `create_deep_agent(...)` is `create_agent(...)` pre-loaded with `FilesystemMiddleware` + `SubAgentMiddleware` + `TodoListMiddleware`. Read **deepagents-code**.
 
-For non-agentic flows (RAG, summarisation, classification), use plain LCEL chains — middleware does **not** apply to chains; it's an agent-specific concept.
+For non-agentic flows (RAG, classification), use plain LCEL chains — middleware does **not** apply to chains.
 
 ## Common commands by lifecycle stage
 
 | Stage | Command(s) |
 |---|---|
 | Scaffold a LangGraph project | `langgraph new my-agent --template react-agent` |
-| Scaffold a DeepAgent | No scaffolder — `pip install deepagents` then write a small `agent.py` |
-| Scaffold a chain | No scaffolder — write a small `agent.py` using LCEL |
+| Scaffold a DeepAgent / chain | No scaffolder — write a small `agent.py` (see scaffold skill) |
 | Install deps | `pip install -e .` or `uv sync` |
-| Iterate on a graph | `langgraph dev` (interactive UI + hot reload) |
+| Iterate on a graph | `langgraph dev` |
 | Run an agent ad hoc | `python -c "from agent.agent import agent; print(agent.invoke({'messages': [...] }))"` |
-| Run evals | `python evals/run.py` (uses `langsmith.evaluate(...)`) |
-| Unit-test agents (no API calls) | `pytest` with `LLMToolEmulator` middleware to fake tool calls |
+| Run evals | `python evals/run.py` |
+| Unit-test agents (no API calls) | `pytest` with `LLMToolEmulator` middleware |
 | Deploy to LangSmith Cloud | `langgraph build -t my-agent && langgraph deploy` |
 | Deploy to Cloud Run | `gcloud run deploy my-agent --source .` |
 | Deploy as a Docker image | `docker build && docker run --env-file .env` |
 
 ## Hard rules
 
-- **Always check what's already installed before suggesting `pip install`.** `pip show langchain langgraph deepagents langsmith` first.
-- **Never print `.env` contents** to the user or to logs. Refer to keys by name only.
-- **Verify every install / build / deploy step** with the relevant `--version`, `--help`, or trace URL — do not assume success.
-- **For ANY production agent, add the production middleware stack** (call limits, retries, fallback, summarization). The middleware skill has the copy-paste-ready stack.
+- **Look up exact APIs via `mcpdoc`, don't guess.** If `mcpdoc` isn't configured, ask the user to set it up (see this repo's README) before you write LangChain code.
+- **Always check what's already installed before suggesting `pip install`** — `pip show langchain langgraph deepagents langsmith`.
+- **Never print `.env` contents** — refer to keys by name only.
+- **For ANY production agent, add the production middleware stack** (call limits, retries, fallback, summarization). Copy-paste-ready in the middleware skill.
 - **Run smoke evals before any deploy.** Not enforced — you must do it.
-- **Read the project structure first** (`ls`, `tree -L 2`) before assuming layout. The ecosystem has multiple shapes; pick the matching skill.
+- **Read the project structure first** (`ls`, `tree -L 2`) before assuming layout.
 
 ## Required environment variables (most projects)
 
 - `LANGSMITH_API_KEY` — for tracing and evals.
 - `LANGSMITH_TRACING=true` — enables trace capture.
 - `LANGSMITH_PROJECT` — trace bucket name.
-- One of `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc. — depends on the model.
+- One of `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.
 
-If any are missing when needed, fail fast with a clear message that names the missing variable. Don't silently proceed.
+If any are missing when needed, fail fast with a clear message that names the missing variable.

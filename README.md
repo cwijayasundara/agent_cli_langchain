@@ -4,17 +4,27 @@ A skill bundle that turns Claude Code, Codex, and other coding agents into exper
 
 > **There is no CLI binary in this repo.** This is a pure skill bundle. The skills teach a coding agent how to drive the official tools (`langgraph-cli`, `deepagents`, `langsmith`, `gcloud`, `docker`) directly. Inspired by — and structurally modeled on — Google's [`agents-cli`](https://github.com/google/agents-cli).
 
-## Install
+## How it pairs with `mcpdoc`
 
-### Using `npx skills`
+This bundle is designed to be installed **alongside** [`langchain-ai/mcpdoc`](https://github.com/langchain-ai/mcpdoc) — the official MCP server that exposes live LangChain documentation. The two have distinct roles:
+
+| | `mcpdoc` | This bundle |
+|---|---|---|
+| Role | Live API reference | Opinionated playbook |
+| Content | Always-current `docs.langchain.com` pages, fetched on demand | Production patterns, gotchas, integrated recipes (Cloud Run + Postgres + middleware), failure-mode tables |
+| Drift risk | Zero — fetched live | Slow drift on editorial content; we maintain |
+
+`mcpdoc` answers *"what's the API right now?"*. The bundle answers *"how should I think about building this?"*. Use both. Skills explicitly point at `mcpdoc` URLs for API lookups.
+
+## Install both
+
+### 1. The skill bundle
 
 ```bash
 npx skills add cwijayasundara/agent_cli_langchain
 ```
 
-This copies the nine skill files into the skill directories of every coding agent it detects (`~/.claude/skills/`, `~/.codex/skills/`, etc.).
-
-### Manual install
+Or manually:
 
 ```bash
 git clone https://github.com/cwijayasundara/agent_cli_langchain
@@ -22,40 +32,59 @@ cp agent_cli_langchain/skills/*.md ~/.claude/skills/
 cp agent_cli_langchain/skills/*.md ~/.codex/skills/
 ```
 
+### 2. The `mcpdoc` MCP server
+
+For Claude Code:
+
+```bash
+claude mcp add-json langchain-docs '{
+  "command": "uvx",
+  "args": [
+    "--from", "mcpdoc", "mcpdoc",
+    "--urls",
+    "LangChain:https://docs.langchain.com/llms.txt",
+    "LangGraph:https://docs.langchain.com/oss/python/langgraph/llms.txt",
+    "--transport", "stdio"
+  ]
+}'
+```
+
+For Cursor / Windsurf / Claude Desktop, see the [`mcpdoc` README](https://github.com/langchain-ai/mcpdoc#configuration) — it lists per-IDE config files.
+
 ## What the skills cover
 
 | Skill | What your coding agent learns |
 |---|---|
-| `langchain-agents-workflow` | The full lifecycle and which official tool to reach for at each step. Always-on entry point. |
+| `langchain-agents-workflow` | Lifecycle entry point. Routes to other skills, explains how skills + `mcpdoc` divide labour. Always-on. |
 | `langchain-agents-scaffold` | `langgraph new` for graph projects; minimal recipes for DeepAgents and LCEL chains. |
-| `langchain-agents-middleware` | The agentic middleware system — the v1+ composition primitive. Built-in middlewares (retries, fallbacks, summarization, HITL, PII, call limits) + custom middleware authoring. The single most important production concept. |
-| `langchain-agents-langgraph-code` | When to drop down to raw `StateGraph` (multi-graph workflows, custom routing, parallel branches), plus checkpointers and durable execution. |
-| `langchain-agents-deepagents-code` | DeepAgents API: `create_deep_agent`, sub-agents, virtual filesystem, filesystem backends, sandboxed execution, composing extra middlewares. |
-| `langchain-agents-langchain-code` | LCEL composition for chains and RAG, structured outputs, chain-level retries/fallbacks. |
-| `langchain-agents-langsmith-evals` | Evalset format, evaluators, running with `langsmith.evaluate(...)`, plus unit / integration / pytest-plugin testing strategies. |
-| `langchain-agents-deploy` | Productionisation (durable execution, the production middleware stack, Postgres checkpointers) + three full deploy recipes: LangSmith Cloud, Google Cloud Run, self-hosted Docker. |
-| `langchain-agents-observability` | LangSmith tracing, OpenTelemetry integration, distributed tracing, alerting, sampling, and a failure-mode lookup table. |
+| `langchain-agents-middleware` | The agentic middleware system — the v1+ composition primitive. Built-ins (retries, fallbacks, summarization, HITL, PII, call limits) + custom middleware authoring + production stack. |
+| `langchain-agents-langgraph-code` | Editorial: when to drop down to raw `StateGraph`, plus production rules of thumb for checkpointers and `thread_id`. Points at `mcpdoc` URLs for API reference. |
+| `langchain-agents-deepagents-code` | Editorial: filesystem backend choice, sandboxed execution rules, sub-agent design. Points at `mcpdoc` for API reference. |
+| `langchain-agents-langchain-code` | Editorial: LCEL vs `create_agent`, structured outputs, RAG production patterns. Points at `mcpdoc` for API reference. |
+| `langchain-agents-langsmith-evals` | Evalset format, evaluators, runner script, plus three-layer testing strategy (unit / integration / pytest plugin). |
+| `langchain-agents-deploy` | Productionisation (durable execution, production middleware stack, Postgres) + three deploy recipes (LangSmith Cloud, Cloud Run with Secret Manager, self-hosted Docker). |
+| `langchain-agents-observability` | LangSmith tracing, OpenTelemetry, distributed tracing, alerting, sampling, failure-mode lookup table. |
 
 ## How to use
 
-1. Install the skills (above).
-2. Open your coding agent (Claude Code / Codex / etc.).
+1. Install both the skill bundle and `mcpdoc` (above).
+2. Open your coding agent.
 3. Ask it to do something — e.g.:
    - *"Scaffold a LangGraph agent that summarizes RSS feeds."*
    - *"Add a sub-agent to my DeepAgent that does web search."*
    - *"Deploy this agent to Cloud Run as an IAM-gated service."*
-4. The coding agent loads the relevant skill and drives the official tools to do the work.
+4. The agent loads the relevant skill (this bundle) for *how to think*, fetches the exact API details from `mcpdoc` for *what to type*, and drives the official tools.
 
 ## What this is not
 
-- **Not a CLI.** No `lcagents` or similar binary to install.
-- **Not a scaffolder.** It teaches your coding agent to use `langgraph new` (and write a few lines for DeepAgents / LCEL); it doesn't ship its own templates.
-- **Not a wrapper around the LangChain ecosystem.** Skills point at the existing official tools and explain how to use them well.
+- **Not a CLI.** No binary to install.
+- **Not a scaffolder.** It teaches the agent to use `langgraph new` and write a few lines for DeepAgents / LCEL.
+- **Not a docs replacement.** That's `mcpdoc`'s job — install it.
 - **Not a published Python package.** Nothing on PyPI.
 
 ## History
 
-This repo went through one earlier iteration as a full Python CLI before becoming a pure skill bundle. That implementation is preserved at git tag `v1-implementation-archive` for the curious. See `git log` for the design evolution.
+This repo went through one earlier iteration as a full Python CLI before becoming a pure skill bundle. That implementation is preserved at git tag `v1-implementation-archive`. See `git log` for the design evolution.
 
 ## License
 
