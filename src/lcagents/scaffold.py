@@ -4,11 +4,15 @@ Composes _shared + a chosen template + project-local skills.
 """
 from __future__ import annotations
 
+import shutil
+import tempfile
+from dataclasses import replace
 from importlib.resources import files
 from pathlib import Path
+from typing import Iterable
 
 from lcagents import __version__
-from lcagents.config import DeployTarget, Template
+from lcagents.config import DeployTarget, Template, load_config, save_config
 from lcagents.templating import render_template
 
 # Maps template -> the project-local skill that's specific to that template
@@ -49,3 +53,52 @@ def scaffold_project(
     render_template(skills_dir, project_root / ".agents" / "skills", context)
 
     return project_root
+
+
+ENHANCEMENT_PATHS: dict[str, list[str]] = {
+    "docker": ["server"],
+    "evals": ["evals"],
+}
+
+
+def enhance_project(
+    project_root: Path,
+    add: Iterable[str],
+    target: DeployTarget | None,
+) -> tuple[list[str], list[str]]:
+    """Apply enhancements. Returns (added_subtrees, already_present_subtrees)."""
+    cfg = load_config(project_root)
+    context = {
+        "project_name": project_root.name,
+        "template": cfg.template,
+        "deploy_target": cfg.deploy_target,
+        "scaffolder_version": __version__,
+        "template_skill": TEMPLATE_SKILL_MAP[cfg.template],
+    }
+    package_root = files("lcagents")
+    shared = Path(str(package_root / "templates" / "_shared"))
+
+    added: list[str] = []
+    already: list[str] = []
+    for sub in add:
+        targets = ENHANCEMENT_PATHS.get(sub)
+        if not targets:
+            raise ValueError(f"Unknown enhancement: {sub}")
+        if all((project_root / t).exists() for t in targets):
+            already.append(sub)
+            continue
+        with tempfile.TemporaryDirectory() as td:
+            staging = Path(td) / "stage"
+            staging.mkdir()
+            render_template(shared, staging, context)
+            for t in targets:
+                src = staging / t
+                if not src.exists():
+                    continue
+                shutil.copytree(src, project_root / t, dirs_exist_ok=True)
+        added.append(sub)
+
+    if target is not None:
+        save_config(project_root, replace(cfg, deploy_target=target))
+
+    return added, already

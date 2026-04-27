@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import List
 
 import typer
 from rich.console import Console
 
-from lcagents.config import DeployTarget, Template
-from lcagents.scaffold import scaffold_project
+from lcagents.config import DeployTarget, Template, find_project_root
+from lcagents.scaffold import enhance_project, scaffold_project
 
 console = Console()
 app = typer.Typer(help="Scaffold, enhance, or upgrade an lcagents project.")
@@ -37,3 +38,22 @@ def create(
     console.print("  lcagents install")
     console.print("  cp .env.example .env  # then fill in keys")
     console.print('  lcagents run "hello"')
+
+
+@app.command("enhance", help="Add deploy/evals or switch deploy target.")
+def enhance(
+    add: List[str] = typer.Option([], "--add", help="Subsystem(s) to add: docker, evals."),
+    target: DeployTarget | None = typer.Option(None, "--target", help="Switch default deploy target."),
+) -> None:
+    project = find_project_root(Path.cwd())
+    if project is None:
+        console.print("[red]No lcagents project found.[/red]")
+        raise typer.Exit(1)
+
+    added, already = enhance_project(project, add, target)
+    for a in added:
+        console.print(f"[green]Added[/green] {a}")
+    for a in already:
+        console.print(f"[yellow]{a} already present[/yellow]")
+    if target:
+        console.print(f"[green]Set deploy_target = {target}[/green]")
