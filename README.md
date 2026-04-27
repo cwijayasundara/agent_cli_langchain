@@ -34,7 +34,11 @@ cp agent_cli_langchain/skills/*.md ~/.codex/skills/
 
 ### 2. The `mcpdoc` MCP server
 
-For Claude Code:
+[`langchain-ai/mcpdoc`](https://github.com/langchain-ai/mcpdoc) is an MCP server that exposes `llms.txt` indices to coding agents. The agent gets two tools: `list_doc_sources()` (lists what's indexed) and `fetch_docs(url)` (fetches a URL listed in any registered `llms.txt`). Fetches are live — docs are always current.
+
+**Prerequisites:** [`uv`](https://docs.astral.sh/uv/getting-started/installation/) (`uvx` ships with it). `pipx` works too if you prefer — substitute `pipx run mcpdoc` for `uvx --from mcpdoc mcpdoc` in the command below.
+
+**Install for Claude Code** (recommended config — single consolidated docs index):
 
 ```bash
 claude mcp add-json langchain-docs '{
@@ -47,19 +51,33 @@ claude mcp add-json langchain-docs '{
 }'
 ```
 
-The `--urls` flag is a **single string** with space-separated `Name:URL` pairs — not one arg per source. To register multiple indices, append them to that one string:
+**Verify it loaded:**
 
 ```bash
-"--urls", "LangChain:https://docs.langchain.com/llms.txt LangGraph:https://langchain-ai.github.io/langgraph/llms.txt"
+claude mcp list
+# expected output includes: langchain-docs: uvx --from mcpdoc mcpdoc ... - ✓ Connected
 ```
 
-Verify it loaded:
+If you see `✗ Failed to connect`, the most common causes are: `uvx` not on `PATH` (install `uv` first); the LangChain docs site temporarily 5xx'ing (retry); a typo in the `--urls` argument (the syntax below is strict).
 
-```bash
-claude mcp list                    # should show `langchain-docs - ✓ Connected`
+**`--urls` syntax is strict.** It takes a *single string* with space-separated `Name:URL` pairs. NOT one arg per source. To register multiple indices, concatenate them into one string:
+
+```json
+"--urls", "LangChain:https://docs.langchain.com/llms.txt LangGraph:https://langchain-ai.github.io/langgraph/llms.txt LangGraphJS:https://langchain-ai.github.io/langgraphjs/llms.txt"
 ```
 
-For Cursor / Windsurf / Claude Desktop, see the [`mcpdoc` README](https://github.com/langchain-ai/mcpdoc#configuration) — it lists per-IDE config files. The `--urls` syntax is the same in those configs.
+The single `LangChain:https://docs.langchain.com/llms.txt` index above is the modern consolidated `docs.langchain.com` site — it covers LangChain, LangGraph, LangSmith, and DeepAgents docs in one index. The skills in this bundle point at `docs.langchain.com/...` URLs, so this is the index that pairs cleanly with them. The legacy per-package URLs (`python.langchain.com`, `langchain-ai.github.io/langgraph`) still work and are listed in the upstream `mcpdoc` README if you prefer that split.
+
+**How this bundle uses `mcpdoc` at runtime:**
+
+1. The agent loads a skill from this bundle (e.g. `langchain-agents-langgraph-code`).
+2. The skill tells the agent: *"For API reference, fetch from `https://docs.langchain.com/oss/python/langgraph/...`."*
+3. The agent calls `fetch_docs(url)` — `mcpdoc` returns the live page.
+4. The agent combines the bundle's editorial guidance with the live API to write code.
+
+Without `mcpdoc`, the agent has only the bundle's editorial content and falls back to its training-data memory of the LangChain API — which drifts as the ecosystem evolves. That's why we treat `mcpdoc` as a required companion, not optional.
+
+**For Cursor / Windsurf / Claude Desktop**, see the [`mcpdoc` README](https://github.com/langchain-ai/mcpdoc#configuration) — it lists per-IDE config files. The `--urls` syntax is the same. After editing the IDE config, restart the IDE for it to pick up the new MCP server.
 
 ## What the skills cover
 
