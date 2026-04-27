@@ -12,12 +12,16 @@ from lcagents.coding_agents import detect_coding_agents, install_skills
 console = Console()
 
 
-def setup(force: bool = typer.Option(False, "--force", help="Reinstall even if already present.")) -> None:
+def setup(  # noqa: B008
+    force: bool = typer.Option(False, "--force", help="Reinstall even if already present."),  # noqa: B008
+) -> None:
     """Install lcagents skills into Claude Code, Codex, etc."""
     _ = force  # install_skills already overwrites; flag reserved for future per-file checks
     agents = detect_coding_agents()
     if not agents:
-        console.print("[yellow]No coding agents detected[/yellow] (looked for ~/.claude, ~/.codex).")
+        console.print(
+            "[yellow]No coding agents detected[/yellow] (looked for ~/.claude, ~/.codex)."
+        )
         raise typer.Exit(0)
 
     skills_dir = Path(str(files("lcagents") / "skills"))

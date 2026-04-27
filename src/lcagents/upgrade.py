@@ -18,10 +18,10 @@ from __future__ import annotations
 
 import shutil
 import tempfile
+from collections.abc import Iterable
 from dataclasses import replace
 from importlib.resources import files
 from pathlib import Path
-from typing import Iterable
 
 from lcagents import __version__
 from lcagents.config import load_config, save_config

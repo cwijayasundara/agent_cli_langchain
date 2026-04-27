@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 
-import docker  # type: ignore[import-untyped]
+import docker
 import httpx
 import typer
 from rich.console import Console

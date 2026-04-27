@@ -35,11 +35,6 @@ lcagents = "lcagents.cli:app"
 [tool.hatch.build.targets.wheel]
 packages = ["src/lcagents"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"src/lcagents/templates" = "lcagents/templates"
-"src/lcagents/skills" = "lcagents/skills"
-"src/lcagents/project_skills" = "lcagents/project_skills"
-
 [tool.ruff]
 line-length = 100
 target-version = "py311"
@@ -52,6 +47,7 @@ python_version = "3.11"
 ignore_missing_imports = true
 strict_optional = true
 warn_unused_ignores = true
+exclude = ["src/lcagents/templates/", "src/lcagents/project_skills/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

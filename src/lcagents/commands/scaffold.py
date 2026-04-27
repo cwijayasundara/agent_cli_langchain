@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 import typer
 from rich.console import Console
@@ -18,10 +17,10 @@ app = typer.Typer(help="Scaffold, enhance, or upgrade an lcagents project.")
 @app.command("create", help="Create a new project.")
 def create(
     name: str = typer.Argument(..., help="Project directory name to create."),
-    template: Template = typer.Option(
+    template: Template = typer.Option(  # noqa: B008
         "langgraph-agent", "--template", "-t", help="Which template to use."
     ),
-    deploy_target: DeployTarget = typer.Option(
+    deploy_target: DeployTarget = typer.Option(  # noqa: B008
         "docker", "--deploy-target", help="Default deploy target written into lcagents.toml."
     ),
 ) -> None:
@@ -43,8 +42,10 @@ def create(
 
 @app.command("enhance", help="Add deploy/evals or switch deploy target.")
 def enhance(
-    add: List[str] = typer.Option([], "--add", help="Subsystem(s) to add: docker, evals."),
-    target: DeployTarget | None = typer.Option(None, "--target", help="Switch default deploy target."),
+    add: list[str] = typer.Option([], "--add", help="Subsystem(s) to add: docker, evals."),  # noqa: B008
+    target: DeployTarget | None = typer.Option(  # noqa: B008
+        None, "--target", help="Switch default deploy target."
+    ),
 ) -> None:
     project = find_project_root(Path.cwd())
     if project is None:

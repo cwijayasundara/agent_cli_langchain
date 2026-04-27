@@ -7,7 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from agent.agent import agent
@@ -52,7 +52,7 @@ def main() -> int:
         )
         results[ds_name] = list(ds_results)
 
-    out = RESULTS / f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
+    out = RESULTS / f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}.json"
     out.write_text(json.dumps(results, default=str, indent=2), encoding="utf-8")
     print(f"Wrote {out}")
     return 0
