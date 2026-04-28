@@ -20,17 +20,39 @@ This bundle is designed to be installed **alongside** [`langchain-ai/mcpdoc`](ht
 
 ### 1. The skill bundle
 
+There is no published installer for this bundle — install by cloning the repo and copying the skill directories into your agent's skills folder. Each skill is a directory containing a `SKILL.md` (Anthropic Agent Skills format).
+
+**Claude Code** (`~/.claude/skills/`):
+
 ```bash
-npx skills add cwijayasundara/agent_cli_langchain
+git clone https://github.com/cwijayasundara/agent_cli_langchain.git
+mkdir -p ~/.claude/skills
+cp -R agent_cli_langchain/skills/* ~/.claude/skills/
 ```
 
-Or manually:
+**Codex** (`~/.codex/skills/`):
 
 ```bash
-git clone https://github.com/cwijayasundara/agent_cli_langchain
-cp -R agent_cli_langchain/skills/* ~/.claude/skills/
+mkdir -p ~/.codex/skills
 cp -R agent_cli_langchain/skills/* ~/.codex/skills/
 ```
+
+**Project-scoped install** (skills available only inside one repo — useful when scaffolding a new LangChain project):
+
+```bash
+cd path/to/your-new-project
+mkdir -p .claude/skills
+cp -R /path/to/agent_cli_langchain/skills/* .claude/skills/
+```
+
+**Verify the install** — open Claude Code in any directory and run `/skills`; you should see the nine `langchain-agents-*` skills listed. Or check the filesystem directly:
+
+```bash
+ls ~/.claude/skills/ | grep langchain-agents
+# expected: 9 directories (workflow, scaffold, middleware, langgraph-code, deepagents-code, langchain-code, langsmith-evals, deploy, observability)
+```
+
+**Stay in sync** — to pull updates later, re-run the clone+copy (or `git pull` inside the clone and re-copy). The skills are plain markdown, so overwriting is safe.
 
 ### 2. The `mcpdoc` MCP server
 
@@ -102,6 +124,27 @@ Without `mcpdoc`, the agent has only the bundle's editorial content and falls ba
    - *"Add a sub-agent to my DeepAgent that does web search."*
    - *"Deploy this agent to Cloud Run as an IAM-gated service."*
 4. The agent loads the relevant skill (this bundle) for *how to think*, fetches the exact API details from `mcpdoc` for *what to type*, and drives the official tools.
+
+### Scaffolding a brand-new project with the skills
+
+The skills don't ship a scaffolder — they teach your coding agent to drive the official ones (`langgraph new`, `pip install deepagents`, etc.). End-to-end:
+
+```bash
+# 1. Make a fresh project directory and install the skills into it
+mkdir my-langchain-agent && cd my-langchain-agent
+git init
+mkdir -p .claude/skills
+cp -R /path/to/agent_cli_langchain/skills/* .claude/skills/
+
+# 2. Open Claude Code in this directory
+claude
+
+# 3. Ask the agent to scaffold — it will load `langchain-agents-workflow`
+#    and `langchain-agents-scaffold` automatically:
+#    "Scaffold a LangGraph agent that summarizes RSS feeds."
+```
+
+The agent picks the right scaffolder for the project shape (LangGraph graph vs. DeepAgents vs. plain LCEL), wires in middleware via `langchain-agents-middleware`, and adds eval/deploy steps from the matching skills as you ask for them.
 
 ## What this is not
 
