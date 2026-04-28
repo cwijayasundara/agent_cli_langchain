@@ -7,6 +7,16 @@ description: Use when starting work on any LangChain / LangGraph / DeepAgents pr
 
 This skill is the entry point — read it first, then load the more specific skill for the step you're on.
 
+## Version floors this bundle assumes
+
+- `langchain >= 1.2` (v1 series — middleware-first `create_agent`)
+- `langgraph >= 1.1`, `langgraph-cli >= 0.4`
+- `deepagents >= 0.5.3` (async sub-agents, structured sub-agent responses, filesystem permissions; `model=None` deprecated)
+- `langsmith >= 0.7` (pytest plugin + new evaluator API)
+- `langchain-anthropic >= 1.4`, `langchain-openai >= 1.0`
+
+If a project pins anything below these floors, suggest the bump before writing code — the API shapes in this bundle assume the v1+ surface.
+
 ## You have two complementary tools
 
 This skill bundle pairs with the **`mcpdoc` MCP server**. The two have distinct roles; use both.

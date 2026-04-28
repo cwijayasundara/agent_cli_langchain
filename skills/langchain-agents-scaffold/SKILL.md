@@ -16,7 +16,7 @@ There is no single scaffolder that covers all three project shapes. Pick the rig
 ## LangGraph: `langgraph new`
 
 ```bash
-pip install langgraph-cli      # if not installed
+pip install "langgraph-cli>=0.4"    # if not installed
 langgraph new my-agent --template react-agent
 cd my-agent
 pip install -e .
@@ -37,9 +37,15 @@ There's no `deepagents new`. Create the project by hand:
 ```bash
 mkdir my-deep-agent && cd my-deep-agent
 python -m venv .venv && source .venv/bin/activate
-pip install deepagents langchain langchain-anthropic langsmith
+pip install \
+  "deepagents>=0.5.3" \
+  "langchain>=1.2" \
+  "langchain-anthropic>=1.4" \
+  "langsmith>=0.7"
 mkdir agent
 ```
+
+Pin floors matter: `deepagents>=0.5` removed the legacy subagents API and added async sub-agents; `0.5.2` added the filesystem permissions system; `0.5.3` made `model=None` a deprecated kwarg (you must pass an explicit model) and added structured outputs for sub-agent responses.
 
 Then `agent/__init__.py` (empty) and `agent/agent.py`:
 
@@ -54,7 +60,7 @@ TOOLS = []          # add user tools here
 SUBAGENTS = []      # add sub-agents here (see deepagents-code skill)
 
 agent = create_deep_agent(
-    model=init_chat_model("anthropic:claude-sonnet-4-5"),
+    model=init_chat_model("anthropic:claude-sonnet-4-6"),  # explicit model required as of 0.5.3
     tools=TOOLS,
     subagents=SUBAGENTS,
     instructions=SYSTEM_PROMPT,
@@ -72,7 +78,7 @@ For non-agentic flows (RAG, summarization, classification):
 ```bash
 mkdir my-chain && cd my-chain
 python -m venv .venv && source .venv/bin/activate
-pip install langchain langchain-openai langsmith
+pip install "langchain>=1.2" "langchain-openai>=1.0" "langsmith>=0.7"
 mkdir agent
 ```
 
