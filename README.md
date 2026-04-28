@@ -28,8 +28,8 @@ Or manually:
 
 ```bash
 git clone https://github.com/cwijayasundara/agent_cli_langchain
-cp agent_cli_langchain/skills/*.md ~/.claude/skills/
-cp agent_cli_langchain/skills/*.md ~/.codex/skills/
+cp -R agent_cli_langchain/skills/* ~/.claude/skills/
+cp -R agent_cli_langchain/skills/* ~/.codex/skills/
 ```
 
 ### 2. The `mcpdoc` MCP server
